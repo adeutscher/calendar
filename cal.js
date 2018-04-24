@@ -12,18 +12,9 @@ function Calendar(containingDiv,date,mode,action)
         date object for the target date. If not provided, defaults to the current day.
     */
 
-    /* EDIT COLOR PARAMETERS HERE */
-
-    this.backgroundColor = "#008E00";
-    this.cellColor = "#00CC00";
-    this.cellColorLight = "#80FE80";
-    this.highlightColor = "red";
-
     this.action = action;
 
-    /* craftElement and error functions required for initialization, and is being declared early. */
-
-    this.craftElement = function(type,content,id,style,otherType,otherValue) {
+    this.craftElement = function(type,content,id,classNames,style,otherType,otherValue) {
         /*
         craftElement PARAMETERS EXPLAINED
 
@@ -38,6 +29,8 @@ function Calendar(containingDiv,date,mode,action)
                 manipulate the result of this method.
             id
                 id tag of element
+            classNames
+                class values of element
             style
                 style additions of element
             otherType
@@ -53,16 +46,15 @@ function Calendar(containingDiv,date,mode,action)
         var el = document.createElement(type);
 
         if(content) {
-
             t = document.createTextNode(content);
             el.appendChild(t);
-
-        } else {
-            //this._error("No text specified in created element.");
         }
 
         if(id)
             el.setAttribute("id",id);
+
+        if(classNames)
+            el.setAttribute("class",classNames);
 
         if(style)
             el.setAttribute("style",style);
@@ -73,9 +65,9 @@ function Calendar(containingDiv,date,mode,action)
             else
                 this._error("Extra Type Specified, But With No Properties");
         }
-        //console.log(el);
+
         return el;
-    }
+    };
 
     this._error = function(string) {
         if(string)
@@ -99,19 +91,12 @@ function Calendar(containingDiv,date,mode,action)
         return null;
     }
 
-    tableElement = this.craftElement("table","","","table-layout: fixed; text-align: center; width: 300px; background-color: " + this.backgroundColor + "; font-weight = 500; border-radius: 10px;");
-
-
+    tableElement = this.craftElement("table",null,null,"calendar-body calendar-body-bg","table-layout: fixed; text-align: center; width: 300px; font-weight = 500; border-radius: 10px;");
 
     // Date objects.
     tableElement._currentHighlightDate = null;
     tableElement._currentHighlightMode;
     tableElement._previousHighlightDate;
-
-    tableElement.backgroundColor = this.backgroundColor;
-    tableElement.cellColor = this.cellColor;
-    tableElement.cellColorLight = this.cellColorLight;
-    tableElement.highlightColor = this.highlightColor;
 
     // Dateview object.
     tableElement._currentView = new DateView(date);
@@ -137,16 +122,13 @@ function Calendar(containingDiv,date,mode,action)
         }
 
         if(light == true)
-            var backgroundColor = this.cellColorLight;
+            var className = "calendar-cell-light";
         else if(light == null)
-            var backgroundColor = this.backgroundColor;
+            var className = "calendar-body-bg";
         else
-            var backgroundColor = this.cellColor;
-        // light != undefined &&
+            var className = "calendar-cell";
 
-        //
-
-        return this.craftElement("td",content,"","width: 12.4%; border-radius: 20px; background-color: " + backgroundColor + ";",otherType, otherValue);
+        return this.craftElement("td",content,null,className,"width: 12.4%; border-radius: 20px;",otherType, otherValue);
         // Need to add on-click functionality at a later point in the script.
     }
 
@@ -173,20 +155,20 @@ function Calendar(containingDiv,date,mode,action)
 
         var tempRow = this.craftElement("tr");
 
-
-        tempRow.appendChild(this.craftElement("td","<<","","width: 12.4%; border-radius: 10px;","onclick","this.parentElement.parentElement.previousMonthShift();"));
+        tempRow.appendChild(this.craftElement("td","<<",null, null, "width: 12.4%; border-radius: 10px;","onclick","this.parentElement.parentElement.previousMonthShift();"));
         // Month banner
-        var temp = this.craftElement("td",viewDate.getMonthString() + ", " + viewDate.getFullYear(),"","width: 200px; border-radius: 10px; background-color: " + this.cellColor + ";","colspan",6);
+        var temp = this.craftElement("td",viewDate.getMonthString() + ", " + viewDate.getFullYear(),null,"calendar-cell","width: 200px; border-radius: 10px; background-color: " + this.cellColor + ";","colspan",6);
         temp.setAttribute("onclick","this.parentElement.parentElement.select(this.mode,this.date)");
         temp.date = tempDate;
         temp.mode = "month";
 
         if(this._currentHighlightMode == "month" && temp.date.getMonth() == this._currentHighlightDate.getMonth() && temp.date.getFullYear() == this._currentHighlightDate.getFullYear())
-            temp.style.backgroundColor = this.highlightColor;
+            temp.setAttribute("class", temp.getAttribute("class") + " calendar-cell-highlight");
+
         tempRow.appendChild(temp);
 
         // Next Month
-        tempRow.appendChild(this.craftElement("td",">>","","width: 34px; border-radius: 10px;","onclick","this.parentElement.parentElement.nextMonthShift();"));
+        tempRow.appendChild(this.craftElement("td",">>",null,null,"width: 34px; border-radius: 10px;","onclick","this.parentElement.parentElement.nextMonthShift();"));
 
         this.appendChild(tempRow);
 
@@ -203,7 +185,6 @@ function Calendar(containingDiv,date,mode,action)
                 var lightStatus = true;
 
             tempRow.appendChild(this.craftBasicCell(temp[i],lightStatus));
-
         }
 
         this.appendChild(tempRow);
@@ -215,15 +196,16 @@ function Calendar(containingDiv,date,mode,action)
         temp = this.craftBasicCell("W"+tempDate.getWeek(),true,"onclick","this.parentElement.parentElement.select(this.mode,this.date)");
         temp.date = tempDate;
         temp.mode = "week";
+
         if(this._currentHighlightMode == "week" && temp.date.getWeek() == this._currentHighlightDate.getWeek() && temp.date.getFullYear() == this._currentHighlightDate.getFullYear())
-            temp.style.backgroundColor = this.highlightColor;
+            temp.setAttribute("class", temp.getAttribute("class") + " calendar-cell-highlight");
+
         tempRow.appendChild(temp);
 
         for(var prevIndex = 0; prevIndex < tempDate.getDay(); prevIndex++) {
             tempRow.appendChild(this.craftBasicCell("",null));
             weekCount++;
         }
-        //tempRow.appendChild(this.craftBasicCell("test"));
 
         for(var dayIndex = 1; dayIndex <= viewDate.getMonthDays(); dayIndex++) {
             //console.log(monthIndex);
@@ -232,8 +214,7 @@ function Calendar(containingDiv,date,mode,action)
             temp.mode = "day";
 
             if(this._currentHighlightMode == "day" && temp.date.getDate() == this._currentHighlightDate.getDate() && temp.date.getMonth() == this._currentHighlightDate.getMonth() && temp.date.getFullYear() == this._currentHighlightDate.getFullYear())
-                temp.style.backgroundColor = this.highlightColor;
-
+                temp.setAttribute("class", temp.getAttribute("class") + " calendar-cell-highlight");
             tempRow.appendChild(temp);
 
             weekCount++;
@@ -250,14 +231,11 @@ function Calendar(containingDiv,date,mode,action)
                 temp.date = tempDate;
                 temp.mode = "week";
 
-
                 if(this._currentHighlightMode == "week" && temp.date.getWeek() == this._currentHighlightDate.getWeek())
-                    temp.style.backgroundColor = this.highlightColor;
+                    temp.setAttribute("class", temp.getAttribute("class") + " calendar-cell-highlight");
 
                 tempRow.appendChild(temp);
             }
-            //this.appendChild(tempRow);
-
         }
 
         //////
@@ -269,7 +247,6 @@ function Calendar(containingDiv,date,mode,action)
         }
         this.appendChild(tempRow);
         //console.log();
-        //this.appendChild(this.craftElement("p","zoinks"));
 
         //console.log("Generation complete.");
     }
@@ -330,10 +307,8 @@ function Calendar(containingDiv,date,mode,action)
                 message = "Default: You have selected " + this._currentHighlightMode + " #" + this.pad(this._currentHighlightDate.getWeek(),2) + " of " + answer + ".";
                 break;
             }
-            //alert(message);
             console.log(message);
         }
-
     }
 
     tableElement.isValidDate = this.isValidDate;
@@ -361,26 +336,13 @@ function Calendar(containingDiv,date,mode,action)
     containerElement.appendChild(tableElement);
     tableElement.select(this.isValidMode(mode),tableElement._currentView.getDate(),true);
     tableElement.draw();
-
-
-
-
-    /*
-    t = this.craftElement("p","calendar test" + 5,null,null,"onclick","console.log(this.parentNode);");
-    //this.craftElement("strong","bold")
-    c.appendChild(t);
-    */
-
-
-
 }
 
 function DateView(startDate)
 {
+    this._date = startDate;
     if(!this.isValidDate(startDate))
-        this._date = new Date();
-    else
-        this._date = startDate;
+        this._date = new Date(); // Replace date if invalid.
 
     this._month = this._date.getMonth();
     this._year = this._date.getFullYear();
@@ -408,6 +370,7 @@ function DateView(startDate)
 
     this.previousMonthInner = function() {
         this._month--;
+        this._day = 1;
         if(this._month < 0) {
             this._month = 11;
             this._year--;
@@ -432,7 +395,6 @@ Calendar.prototype.isValidDate = DateView.prototype.isValidDate = function(d)
 
 Date.prototype.getMonthString = function()
 {
-
     var r;
 
     switch(this.getMonth()) {
@@ -480,7 +442,6 @@ Date.prototype.getMonthString = function()
 
 Date.prototype.getMonthDays = function()
 {
-
     var r;
 
     switch(this.getMonth()) {
@@ -524,7 +485,6 @@ Date.prototype.getMonthDays = function()
     case 11:
         r = 31;
         break;
-
     }
     return r;
 }
@@ -550,7 +510,8 @@ Date.prototype.getWeek = function ()
     var daynum = Math.floor((this.getTime() - newYear.getTime() -
                              (this.getTimezoneOffset()-newYear.getTimezoneOffset())*60000)/86400000) + 1;
     var weeknum;
-//if the year starts before the middle of a week
+
+    //if the year starts before the middle of a week
     if(day < 4) {
         weeknum = Math.floor((daynum+day-1)/7) + 1;
         if(weeknum > 52) {

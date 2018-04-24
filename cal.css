@@ -1,0 +1,24 @@
+
+.calendar-cell {
+background-color:
+#00CC00;
+}
+
+td.calendar-cell-highlight {
+background-color:
+    red;
+}
+
+.calendar-cell-light {
+background-color:
+#80FE80;
+}
+
+.calendar-body {
+
+}
+
+.calendar-body-bg {
+background-color:
+#008E00;
+}
